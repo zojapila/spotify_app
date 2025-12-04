@@ -5,8 +5,7 @@ import Image from 'next/image'
 import { ISpotifyArtist, ITopArtistsResponse, TimeRange } from '@/types/spotify'
 import { TimeRangeSelector } from '@/components/ui/TimeRangeSelector'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { getApiUrl } from '@/lib/api'
 
 interface TopArtistsProps {
   accessToken: string
@@ -25,7 +24,7 @@ export function TopArtists({ accessToken }: TopArtistsProps) {
 
       try {
         const response = await fetch(
-          `${API_URL}/api/spotify/top/artists?time_range=${timeRange}&limit=20`,
+          `${getApiUrl()}/api/spotify/top/artists?time_range=${timeRange}&limit=20`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,

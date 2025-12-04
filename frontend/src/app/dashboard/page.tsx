@@ -8,9 +8,9 @@ import { TopTracks } from '@/components/dashboard/TopTracks'
 import { TopAlbums } from '@/components/dashboard/TopAlbums'
 import { RecentlyPlayed } from '@/components/dashboard/RecentlyPlayed'
 import { Navigation } from '@/components/dashboard/Navigation'
+import { SettingsModal } from '@/components/ui/SettingsModal'
 import { ISpotifyUser } from '@/types/spotify'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { getApiUrl } from '@/lib/api'
 
 type TabType = 'artists' | 'tracks' | 'albums' | 'recent'
 
@@ -23,6 +23,7 @@ function DashboardContent() {
   const [activeTab, setActiveTab] = useState<TabType>('artists')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
     // Get tokens from URL params (from OAuth callback)
@@ -54,8 +55,9 @@ function DashboardContent() {
     if (!accessToken) return
 
     const fetchUser = async () => {
+      const apiUrl = getApiUrl()
       try {
-        const response = await fetch(`${API_URL}/api/spotify/me`, {
+        const response = await fetch(`${apiUrl}/api/spotify/me`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -118,12 +120,22 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-spotify-black to-gray-900">
+      {/* Settings Modal */}
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
+      
       {/* Header */}
       <header className="bg-spotify-black/90 backdrop-blur-sm z-10 border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-white">🎵 Spotify Stats</h1>
           <div className="flex items-center gap-4">
             {user && <UserProfile user={user} />}
+            <button
+              onClick={() => setShowSettings(true)}
+              className="text-spotify-lightgray hover:text-white transition-colors"
+              title="Ustawienia"
+            >
+              ⚙️
+            </button>
             <button
               onClick={handleLogout}
               className="text-spotify-lightgray hover:text-white transition-colors"

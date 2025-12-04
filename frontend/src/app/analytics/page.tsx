@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Navigation } from '@/components/dashboard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { getApiUrl } from '@/lib/api';
+import { SettingsModal } from '@/components/ui/SettingsModal';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 interface DailyListening {
   date: string;
@@ -96,6 +96,7 @@ export default function AnalyticsPage() {
   const [monthly, setMonthly] = useState<MonthlyComparison[]>([]);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     const token = searchParams.get('access_token') || localStorage.getItem('spotify_access_token');
@@ -120,10 +121,10 @@ export default function AnalyticsPage() {
     
     try {
       const [analyticsRes, monthlyRes] = await Promise.all([
-        fetch(`${API_URL}/api/tracking/analytics?days=${days}`, {
+        fetch(`${getApiUrl()}/api/tracking/analytics?days=${days}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         }),
-        fetch(`${API_URL}/api/tracking/monthly?months=6`, {
+        fetch(`${getApiUrl()}/api/tracking/monthly?months=6`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         }),
       ]);
@@ -151,22 +152,32 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
       <Navigation accessToken={accessToken} />
       
       <main className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">📊 Analityka słuchania</h1>
           
-          <select
-            value={days}
-            onChange={(e) => setDays(Number(e.target.value))}
-            className="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700"
-          >
-            <option value={7}>Ostatnie 7 dni</option>
-            <option value={30}>Ostatnie 30 dni</option>
-            <option value={90}>Ostatnie 90 dni</option>
-            <option value={0}>Wszystkie dane</option>
-          </select>
+          <div className="flex items-center gap-4">
+            <select
+              value={days}
+              onChange={(e) => setDays(Number(e.target.value))}
+              className="bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700"
+            >
+              <option value={7}>Ostatnie 7 dni</option>
+              <option value={30}>Ostatnie 30 dni</option>
+              <option value={90}>Ostatnie 90 dni</option>
+              <option value={0}>Wszystkie dane</option>
+            </select>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="text-gray-400 hover:text-white transition-colors"
+              title="Ustawienia"
+            >
+              ⚙️
+            </button>
+          </div>
         </div>
 
         {!analytics || analytics.daily_listening.length === 0 ? (

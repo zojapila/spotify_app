@@ -5,8 +5,7 @@ import Image from 'next/image'
 import { IPlayHistoryItem, IRecentlyPlayedResponse } from '@/types/spotify'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { formatDuration, formatRelativeTime } from '@/lib/utils'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { getApiUrl } from '@/lib/api'
 
 interface RecentlyPlayedProps {
   accessToken: string
@@ -24,7 +23,7 @@ export function RecentlyPlayed({ accessToken }: RecentlyPlayedProps) {
 
       try {
         const response = await fetch(
-          `${API_URL}/api/spotify/recently-played?limit=50`,
+          `${getApiUrl()}/api/spotify/recently-played?limit=50`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,

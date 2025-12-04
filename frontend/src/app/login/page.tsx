@@ -1,12 +1,14 @@
 'use client'
 
-import { useEffect } from 'react'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { useState } from 'react'
+import { getApiUrl } from '@/lib/api'
+import { SettingsModal } from '@/components/ui/SettingsModal'
 
 export default function LoginPage() {
+  const [showSettings, setShowSettings] = useState(false)
+
   const handleLogin = () => {
-    window.location.href = `${API_URL}/api/auth/login`
+    window.location.href = `${getApiUrl()}/api/auth/login`
   }
 
   return (
@@ -41,11 +43,20 @@ export default function LoginPage() {
           Zaloguj przez Spotify
         </button>
 
+        <button
+          onClick={() => setShowSettings(true)}
+          className="text-spotify-lightgray hover:text-white transition-colors mt-4"
+        >
+          ⚙️ Ustawienia połączenia
+        </button>
+
         <p className="text-spotify-gray text-sm mt-6">
           Będziemy mieli dostęp tylko do odczytu Twoich danych słuchania.
           Nie możemy modyfikować Twojego konta ani playlist.
         </p>
       </div>
+
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </main>
   )
 }
