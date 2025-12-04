@@ -1,13 +1,18 @@
 """Authentication router for Spotify OAuth."""
 
 import secrets
+from datetime import datetime, timedelta
 from urllib.parse import urlencode
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from fastapi.responses import RedirectResponse
 import httpx
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.config import get_settings
 from app.schemas.auth import TokenResponse
+from app.database import get_db
+from app.models.user_token import UserToken
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 settings = get_settings()
@@ -40,6 +45,7 @@ async def callback(
     code: str = Query(None),
     state: str = Query(None),
     error: str = Query(None),
+    db: AsyncSession = Depends(get_db),
 ):
     """Handle Spotify OAuth callback."""
     if error:
@@ -77,6 +83,46 @@ async def callback(
             )
         
         tokens = response.json()
+    
+    # Get user profile to store with tokens
+    async with httpx.AsyncClient() as client:
+        profile_response = await client.get(
+            f"{settings.spotify_api_base_url}/me",
+            headers={"Authorization": f"Bearer {tokens['access_token']}"},
+        )
+        
+        user_profile = profile_response.json() if profile_response.status_code == 200 else {}
+    
+    # Save or update user token in database for background tracking
+    user_id = user_profile.get("id", "unknown")
+    
+    query = select(UserToken).where(UserToken.user_id == user_id)
+    result = await db.execute(query)
+    existing_token = result.scalar_one_or_none()
+    
+    token_expires_at = datetime.utcnow() + timedelta(seconds=tokens["expires_in"])
+    
+    if existing_token:
+        # Update existing token
+        existing_token.access_token = tokens["access_token"]
+        existing_token.refresh_token = tokens.get("refresh_token", existing_token.refresh_token)
+        existing_token.token_expires_at = token_expires_at
+        existing_token.display_name = user_profile.get("display_name")
+        existing_token.email = user_profile.get("email")
+    else:
+        # Create new token
+        new_token = UserToken(
+            user_id=user_id,
+            display_name=user_profile.get("display_name"),
+            email=user_profile.get("email"),
+            access_token=tokens["access_token"],
+            refresh_token=tokens.get("refresh_token", ""),
+            token_expires_at=token_expires_at,
+            tracking_enabled=True,
+        )
+        db.add(new_token)
+    
+    await db.commit()
     
     # Redirect to frontend with tokens in URL params
     # In production, use secure HTTP-only cookies instead

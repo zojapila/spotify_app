@@ -1,5 +1,6 @@
 """FastAPI application entry point."""
 
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +8,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.database import create_tables
 from app.routers import auth_router, spotify_router, tracking_router
+from app.services.scheduler import start_scheduler, stop_scheduler
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
@@ -16,10 +25,13 @@ async def lifespan(app: FastAPI):
     """Application lifespan handler."""
     # Startup
     await create_tables()
+    start_scheduler()
     print("🚀 Spotify Stats API started!")
     print(f"📊 API docs: http://localhost:8000/docs")
+    print("🎵 Background tracking enabled (every 30s)")
     yield
     # Shutdown
+    stop_scheduler()
     print("👋 Shutting down...")
 
 
