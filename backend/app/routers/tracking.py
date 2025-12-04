@@ -1,5 +1,6 @@
 """Tracking router for custom listening statistics."""
 
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 import httpx
@@ -12,6 +13,8 @@ from app.schemas.tracking import (
     RecordPlayResponse,
     TrackingStats,
     TrackingHistory,
+    AdvancedAnalytics,
+    MonthlyComparison,
 )
 
 router = APIRouter(prefix="/api/tracking", tags=["tracking"])
@@ -77,3 +80,49 @@ async def get_history(
     """
     service = TrackingService(db, user_id)
     return await service.get_history(days=days, limit=limit, offset=offset)
+
+
+@router.get("/analytics", response_model=AdvancedAnalytics)
+async def get_analytics(
+    days: int = 30,
+    user_id: str = Depends(get_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get advanced listening analytics.
+    
+    Includes:
+    - Daily listening breakdown
+    - Hourly distribution (when do you listen most?)
+    - Weekday distribution
+    - Listening streaks
+    - Trends (compared to previous period)
+    - New artists discovered
+    - Variety score
+    
+    Args:
+        days: Number of days to analyze (0 = all time)
+    """
+    service = TrackingService(db, user_id)
+    return await service.get_advanced_analytics(days=days)
+
+
+@router.get("/monthly", response_model=List[MonthlyComparison])
+async def get_monthly_comparison(
+    months: int = 6,
+    user_id: str = Depends(get_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get month-over-month comparison.
+    
+    Returns statistics for each of the last N months including:
+    - Total plays and listening time
+    - Unique artists and tracks
+    - Top artist and track for each month
+    
+    Args:
+        months: Number of months to compare (default 6)
+    """
+    service = TrackingService(db, user_id)
+    return await service.get_monthly_comparison(months=months)
