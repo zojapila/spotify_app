@@ -12,6 +12,20 @@ const DEFAULT_API_URL = 'http://127.0.0.1:8000';
 const BACKEND_URL_KEY = 'spotify_stats_backend_url';
 
 /**
+ * Get headers for API requests (includes ngrok bypass header)
+ */
+export function getApiHeaders(accessToken?: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    'ngrok-skip-browser-warning': 'true',
+    'Content-Type': 'application/json',
+  };
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+  return headers;
+}
+
+/**
  * Get the current API URL.
  * Checks localStorage for custom URL, falls back to env variable or default.
  */

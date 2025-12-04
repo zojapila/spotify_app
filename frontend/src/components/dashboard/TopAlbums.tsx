@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { ISpotifyAlbum, ITopAlbumsResponse, TimeRange } from '@/types/spotify'
 import { TimeRangeSelector } from '@/components/ui/TimeRangeSelector'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { getApiUrl } from '@/lib/api'
+import { getApiUrl, getApiHeaders } from '@/lib/api'
 
 interface TopAlbumsProps {
   accessToken: string
@@ -26,9 +26,7 @@ export function TopAlbums({ accessToken }: TopAlbumsProps) {
         const response = await fetch(
           `${getApiUrl()}/api/spotify/top/albums?time_range=${timeRange}&limit=20`,
           {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
+            headers: getApiHeaders(accessToken),
           }
         )
 

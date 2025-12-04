@@ -10,7 +10,7 @@ import { RecentlyPlayed } from '@/components/dashboard/RecentlyPlayed'
 import { Navigation } from '@/components/dashboard/Navigation'
 import { SettingsModal } from '@/components/ui/SettingsModal'
 import { ISpotifyUser } from '@/types/spotify'
-import { getApiUrl } from '@/lib/api'
+import { getApiUrl, getApiHeaders } from '@/lib/api'
 
 type TabType = 'artists' | 'tracks' | 'albums' | 'recent'
 
@@ -58,9 +58,7 @@ function DashboardContent() {
       const apiUrl = getApiUrl()
       try {
         const response = await fetch(`${apiUrl}/api/spotify/me`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          headers: getApiHeaders(accessToken),
         })
 
         if (!response.ok) {

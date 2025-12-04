@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Navigation } from '@/components/dashboard';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { getApiUrl } from '@/lib/api';
+import { getApiUrl, getApiHeaders } from '@/lib/api';
 import { SettingsModal } from '@/components/ui/SettingsModal';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -122,10 +122,10 @@ export default function AnalyticsPage() {
     try {
       const [analyticsRes, monthlyRes] = await Promise.all([
         fetch(`${getApiUrl()}/api/tracking/analytics?days=${days}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
+          headers: getApiHeaders(accessToken),
         }),
         fetch(`${getApiUrl()}/api/tracking/monthly?months=6`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
+          headers: getApiHeaders(accessToken),
         }),
       ]);
 

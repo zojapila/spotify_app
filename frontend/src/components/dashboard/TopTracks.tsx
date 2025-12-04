@@ -6,7 +6,7 @@ import { ISpotifyTrack, ITopTracksResponse, TimeRange } from '@/types/spotify'
 import { TimeRangeSelector } from '@/components/ui/TimeRangeSelector'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { formatDuration } from '@/lib/utils'
-import { getApiUrl } from '@/lib/api'
+import { getApiUrl, getApiHeaders } from '@/lib/api'
 
 interface TopTracksProps {
   accessToken: string
@@ -27,9 +27,7 @@ export function TopTracks({ accessToken }: TopTracksProps) {
         const response = await fetch(
           `${getApiUrl()}/api/spotify/top/tracks?time_range=${timeRange}&limit=20`,
           {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
+            headers: getApiHeaders(accessToken),
           }
         )
 

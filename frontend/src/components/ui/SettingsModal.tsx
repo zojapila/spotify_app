@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getApiUrl, setBackendUrl, clearBackendUrl, isUsingCustomBackend } from '@/lib/api';
+import { getApiUrl, setBackendUrl, clearBackendUrl, isUsingCustomBackend, getApiHeaders } from '@/lib/api';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -24,6 +24,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       const response = await fetch(`${backendUrl}/`, {
         method: 'GET',
         mode: 'cors',
+        headers: getApiHeaders(),
       });
       if (response.ok) {
         setTestStatus('success');
